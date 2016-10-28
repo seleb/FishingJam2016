@@ -16,6 +16,7 @@ function main(){
 
 function init(){
 	// initialize input managers
+	gamepads.init();
 	keys.init();
 	keys.capture=[keys.LEFT,keys.RIGHT,keys.UP,keys.DOWN,keys.SPACE,keys.ENTER,keys.BACKSPACE,keys.ESCAPE,keys.F,keys.M];
 
@@ -61,6 +62,7 @@ function update(){
 
 	// update input managers
 	keys.update();
+	gamepads.update();
 }
 
 function render(){
