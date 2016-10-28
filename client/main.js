@@ -31,7 +31,7 @@ function init(){
 	screen_filter = new CustomFilter(PIXI.loader.resources.screen_shader.data);
 	screen_filter.padding=0;
 
-	renderSprite.filters = [screen_filter];
+	//renderSprite.filters = [screen_filter];
 
 
 	// screen background
