@@ -73,7 +73,8 @@ $(document).ready(function(){
 	CustomFilter.prototype.constructor = CustomFilter;
 
 	PIXI.loader
-		.add("screen_shader","assets/screen_shader.frag");
+		.add("screen_shader","assets/screen_shader.frag")
+		.add("fish","assets/img/fish.png");
 
 	PIXI.loader
 		.on("progress", loadProgressHandler)
