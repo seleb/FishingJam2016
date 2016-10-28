@@ -5,6 +5,16 @@ function lerp(from,to,t){
 	return from+(to-from)*t;
 }
 
+function slerp(from,to,t){
+	 while(to-from > Math.PI){
+	 	from+=Math.PI*2;
+	 }
+	 while(to-from < -Math.PI){
+	 	from-=Math.PI*2;
+	 }
+	 return (from+t*(to-from))%(Math.PI*2);
+}
+
 function clamp(min,v,max){
 	return Math.max(min,Math.min(v,max));
 }
