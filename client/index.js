@@ -14,7 +14,8 @@ if(!PIXI.utils.isWebGLSupported()){
 var resizeTimeout=null;
 
 var mouse={
-	pos:[0,0]
+	x:0,
+	y:0
 };
 var size=[500,300];
 
@@ -26,6 +27,10 @@ $(document).ready(function(){
 	window.focus();
 	$(document).on("mousedown",function(event){
 		window.focus();
+	});
+	$(document).on("mousemove",function(event){
+		mouse.x=event.clientX;
+		mouse.y=event.clientY;
 	});
 
 	// setup game
@@ -74,7 +79,9 @@ $(document).ready(function(){
 
 	PIXI.loader
 		.add("screen_shader","assets/screen_shader.frag")
-		.add("fish","assets/img/fish.png");
+		.add("fish","assets/img/fish.png")
+		.add("hook","assets/img/hook.png")
+		.add("line","assets/img/line.png");
 
 	PIXI.loader
 		.on("progress", loadProgressHandler)
@@ -114,8 +121,6 @@ function _resize(){
 	renderer.view.style.width=w+"px";
 	renderer.view.style.height=h+"px";
 
-	w/=2;
-	h/=2;
 	renderer.resize(w,h);
 	renderTexture.baseTexture.resize(w,h);
 	console.log("Resized",size,w,h);
