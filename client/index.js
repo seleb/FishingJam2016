@@ -79,7 +79,8 @@ $(document).ready(function(){
 
 	PIXI.loader
 		.add("screen_shader","assets/screen_shader.frag")
-		.add("fish","assets/img/fish.png")
+		.add("fish_1","assets/img/fish_1.png")
+		.add("fish_2","assets/img/fish_2.png")
 		.add("hook","assets/img/hook.png")
 		.add("line","assets/img/line.png");
 
