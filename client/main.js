@@ -78,6 +78,17 @@ function init(){
 	hook = new PIXI.Sprite(PIXI.loader.resources.hook.texture);
 	hook.anchor.x=0.5;
 	hook.anchor.y=0.25;
+
+	hook.contact = new PIXI.Graphics();
+	if(debugDraw){
+		hook.contact.lineStyle(2, 0xCC4499);
+		hook.contact.drawCircle(0,0,20);
+		hook.contact.endFill();
+	}
+	hook.contact.x=-21;
+	hook.contact.y=20;
+	hook.addChild(hook.contact);
+
 	world.addChild(hook);
 
 	fishingLine={
