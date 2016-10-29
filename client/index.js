@@ -21,6 +21,8 @@ var size=[500,300];
 
 var sounds=[];
 
+var debugDraw=true;
+
 $(document).ready(function(){
 
 	// try to auto-focus and make sure the game can be focused with a click if run from an iframe

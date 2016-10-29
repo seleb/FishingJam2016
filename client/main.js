@@ -61,8 +61,11 @@ function init(){
 		segmentCount:16,
 		length:128
 	};
-	segmentLength=fishies.length/fishies.segmentCount;
-
+	fishies.segmentLength=fishies.length/fishies.segmentCount;
+	fishies.innerCollision = fishies.length/5;
+	fishies.outerCollision = fishies.length/3;
+	fishies.innerCollision2 = fishies.innerCollision*fishies.innerCollision;
+	fishies.outerCollision2 = fishies.outerCollision*fishies.outerCollision;
 	
 	addFish();
 	addFish();
@@ -114,13 +117,13 @@ function update(){
 	for(var f = 0; f < fishies.a.length; ++f){
 		var fish=fishies.a[f];
 
-		input={
+		fish.input={
 			dx:gamepads.getAxis(f*2),
 			dy:gamepads.getAxis(f*2+1)
 		};
 
-		fish.speed.x+=input.dx*1.4;
-		fish.speed.y+=input.dy*1.4;
+		fish.speed.x+=fish.input.dx*1.4;
+		fish.speed.y+=fish.input.dy*1.4;
 
 		fish.speed.x*=0.9;
 		fish.speed.y*=0.9;
@@ -181,38 +184,43 @@ function update(){
     	}
     }
 
-    // fish collision
+    // fish collision with fish
     
     for(var a = 0; a < fishies.a.length; ++a){
-	var fish1=fishies.a[a];
-	for(var b = 0; b < fishies.a.length; ++b){
-		if(a==b){
-			continue;
-		}
-		var fish2=fishies.a[b];
+		var fish1=fishies.a[a];
+		for(var b = a+1; b < fishies.a.length; ++b){
+			var fish2=fishies.a[b];
 
-		var dx=fish2.x-fish1.x;
-		var dy=fish2.y-fish1.y;
-		var d2=dx*dx+dy*dy;
+			var dx=fish2.x-fish1.x;
+			var dy=fish2.y-fish1.y;
+			var d2=dx*dx+dy*dy;
 
-		if(d2 < fishies.length*fishies.length/4){
-			var angle=Math.atan2(dy,dx);
-			fish1.speed.x-=Math.cos(angle)*5;
-			fish1.speed.y-=Math.sin(angle)*5;
-			fish2.speed.x+=Math.cos(angle)*5;
-			fish2.speed.y+=Math.sin(angle)*5;
+			if(d2 < fishies.innerCollision2*4){
+				var angle=Math.atan2(dy,dx);
+				var x=fish1.speed.x;
+				var y=fish1.speed.y;
 
-			for(var i = Math.random()*0.3; i < Math.PI*2; i+=Math.random()*2+0.5){
-		    	var bubble=addBubble(
-		    		(fish1.x+fish2.x)/2+(Math.random()*fishies.length/3-fishies.length/6)*Math.cos(i),
-		    		(fish1.y+fish2.y)/2+(Math.random()*fishies.length/3-fishies.length/6)*Math.sin(i),
-		    		Math.random(5)+5,
-		    		Math.random()*10+10);
-		    	bubble.vx=(Math.random()*5+5)*Math.cos(i);
-		    	bubble.vy=(Math.random()*5+5)*Math.sin(i);
-	    	}
-		}
-    }
+				fish1.speed.x+=fish2.speed.x*0.75;
+				fish1.speed.y+=fish2.speed.y*0.75;
+				fish2.speed.x+=x*0.75;
+				fish2.speed.y+=y*0.75;
+
+				fish1.speed.x-=Math.cos(angle)*15;
+				fish1.speed.y-=Math.sin(angle)*15;
+				fish2.speed.x+=Math.cos(angle)*15;
+				fish2.speed.y+=Math.sin(angle)*15;
+
+				for(var i = Math.random()*0.3; i < Math.PI*2; i+=Math.random()*2+0.5){
+			    	var bubble=addBubble(
+			    		(fish1.x+fish2.x)/2+(Math.random()*fishies.innerCollision-fishies.length/6)*Math.cos(i),
+			    		(fish1.y+fish2.y)/2+(Math.random()*fishies.innerCollision-fishies.length/6)*Math.sin(i),
+			    		Math.random(5)+5,
+			    		Math.random()*10+10);
+			    	bubble.vx=(Math.random()*5+5)*Math.cos(i);
+			    	bubble.vy=(Math.random()*5+5)*Math.sin(i);
+		    	}
+			}
+	    }
     }
 
     // fishing line
@@ -255,9 +263,7 @@ function update(){
 
     for(var f = 0; f < fishies.a.length; ++f){
     	var fish=fishies.a[f];
-	    // fish collision
-	    var collisionDist=fishies.length/3;
-	    var collisionDist2=collisionDist*collisionDist;
+	    // fish collision with line
 	    var collisionStrength=100;
 	    var closest=-1;
 	    var closestDist=999999999;
@@ -266,7 +272,7 @@ function update(){
 	    	var dy=fishingLinePointsCopy[i].y-fish.y;
 	    	var a=Math.atan2(dy,dx);
 	    	var d2=dx*dx+dy*dy;
-	    	if(d2 < collisionDist2){
+	    	if(d2 < fishies.outerCollision2){
 	    		var d=Math.sqrt(d2);
 
 	    		if(d < closestDist){
@@ -289,7 +295,7 @@ function update(){
 
 	    		dx/=d;
 	    		dy/=d;
-	    		d=1-Math.sqrt(d2)/collisionDist;
+	    		d=1-Math.sqrt(d2)/fishies.outerCollision;
 	    		fishingLine.points[i].vx+=Math.cos(a)*d*collisionStrength;
 	    		fishingLine.points[i].vy+=Math.sin(a)*d*collisionStrength;
 	    	}
@@ -326,18 +332,30 @@ function update(){
     hook.y=fishingLine.points[fishingLine.segmentCount-1].y;
     hook.rotation=slerp(hook.rotation, Math.atan2(fishingLine.points[fishingLine.segmentCount-6].y-fishingLine.points[fishingLine.segmentCount-2].y, fishingLine.points[fishingLine.segmentCount-6].x-fishingLine.points[fishingLine.segmentCount-2].x)+Math.PI/2, 0.5);
 
-    // controller debug
-    /*graphics.clear();
-	graphics.beginFill(0x000000);
-	graphics.drawCircle(fish.x,fish.y,5);
-	graphics.endFill();
-	graphics.lineStyle(6,0x00FF00);
-	graphics.moveTo(fish.x,fish.y);
-	graphics.lineTo(fish.x+speed.x*5, fish.y+speed.y*5);
-	graphics.lineStyle(3,0xFF0000);
-	graphics.moveTo(fish.x,fish.y);
-	graphics.lineTo(fish.x+input.dx*40, fish.y+input.dy*40);*/
-
+    if(debugDraw){
+    	// fish debug
+	    for(var f = 0; f < fishies.a.length; ++f){
+	    	var fish=fishies.a[f];
+		    var g=fish.debugGraphics;
+		    g.x=fish.x;
+		    g.y=fish.y;
+		    g.clear();
+			g.beginFill(0x000000);
+			g.drawCircle(0,0,5);
+			g.endFill();
+			g.lineStyle(6,0x00FF00);
+			g.moveTo(0,0);
+			g.lineTo(0+fish.speed.x*5, 0+fish.speed.y*5);
+			g.lineStyle(3,0xFF0000);
+			g.moveTo(0,0);
+			g.lineTo(0+fish.input.dx*40, 0+fish.input.dy*40);
+			g.beginFill(0,0);
+			g.lineStyle(2, 0xCC4499);
+			g.drawCircle(0,0,fishies.outerCollision);
+			g.drawCircle(0,0,fishies.innerCollision);
+			g.endFill();
+		}
+	}
 
 	screen_filter.uniforms.time = curTime/1000;
 
@@ -374,6 +392,11 @@ function addFish(){
 	    fish.points.push(new PIXI.Point(i * fishies.segmentLength, 0));
 	}
 	fish.strip = new PIXI.mesh.Rope(fish.tex, fish.points);
+
+	if(debugDraw){
+		fish.debugGraphics = new PIXI.Graphics();
+		fish.strip.addChild(fish.debugGraphics);
+	}
 
 	world.addChild(fish.strip);
 
