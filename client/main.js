@@ -64,6 +64,10 @@ function init(){
 	addFish();
 	addFish();
 
+	fishies.a[0].x=size[0]/3;
+	fishies.a[1].x=size[0]/3*2;
+	fishies.a[0].y=size[1]/2;
+	fishies.a[1].y=size[1]/2;
 
 	hook = new PIXI.Sprite(PIXI.loader.resources.hook.texture);
 	hook.anchor.x=0.5;
@@ -205,14 +209,14 @@ function update(){
 	    }
 
 	    // fish pickup line
-	    if(gamepads.isJustDown(gamepads.A)){
+	    if(gamepads.isJustDown(gamepads.A+f)){
 	    	fish.grabbed=closest;
-	    }if(gamepads.isJustUp(gamepads.A)){
+	    }if(gamepads.isJustUp(gamepads.A+f)){
 	    	fish.grabbed=-1;
 	    }
 
 	    // fish drag line
-	    if(gamepads.isDown(gamepads.A)){
+	    if(gamepads.isDown(gamepads.A+f)){
 	    	if(fish.grabbed>=0){
 	    		fishingLine.points[fish.grabbed].x=fish.x - Math.cos(fish.a)*fishies.length/3;
 	    		fishingLine.points[fish.grabbed].y=fish.y - Math.sin(fish.a)*fishies.length/3;
