@@ -221,15 +221,7 @@ function update(){
 				fish2.speed.x+=Math.cos(angle)*15;
 				fish2.speed.y+=Math.sin(angle)*15;
 
-				for(var i = Math.random()*0.3; i < Math.PI*2; i+=Math.random()*2+0.5){
-			    	var bubble=addBubble(
-			    		(fish1.x+fish2.x)/2+(Math.random()*fishies.innerCollision-fishies.length/6)*Math.cos(i),
-			    		(fish1.y+fish2.y)/2+(Math.random()*fishies.innerCollision-fishies.length/6)*Math.sin(i),
-			    		Math.random(5)+5,
-			    		Math.random()*10+10);
-			    	bubble.vx=(Math.random()*5+5)*Math.cos(i);
-			    	bubble.vy=(Math.random()*5+5)*Math.sin(i);
-		    	}
+				addPop((fish1.x+fish2.x)/2, (fish1.y+fish2.y)/2, fishies.innerCollision);
 			}
 	    }
     }
@@ -275,7 +267,7 @@ function update(){
     for(var f = 0; f < fishies.a.length; ++f){
     	var fish=fishies.a[f];
 	    // fish collision with line
-	    var collisionStrength=100;
+	    var collisionStrength=50;
 	    var closest=-1;
 	    var closestDist=999999999;
 	    for (var i = 0; i < fishingLine.segmentCount; ++i) {
@@ -307,6 +299,9 @@ function update(){
 	    		dx/=d;
 	    		dy/=d;
 	    		d=1-Math.sqrt(d2)/fishies.outerCollision;
+	    		if(fishingLine.segmentCount-i < 5){
+	    			d*=Math.max(0, (fishingLine.segmentCount-i-2)/5);
+	    		}
 	    		fishingLine.points[i].vx+=Math.cos(a)*d*collisionStrength;
 	    		fishingLine.points[i].vy+=Math.sin(a)*d*collisionStrength;
 	    	}
@@ -330,7 +325,10 @@ function update(){
 	    }
 	}
 
-	// "integrate"
+
+	
+
+	// "integrate" fishing line
     for (var i = 1; i < fishingLine.segmentCount; ++i) {
     	fishingLine.points[i].vx*=0.9;
 		fishingLine.points[i].vy*=0.9;
@@ -339,9 +337,25 @@ function update(){
 		fishingLine.points[i].y+=fishingLine.points[i].vy;
     }
 
+    // update hook
     hook.x=fishingLine.points[fishingLine.segmentCount-1].x;
     hook.y=fishingLine.points[fishingLine.segmentCount-1].y;
     hook.rotation=slerp(hook.rotation, Math.atan2(fishingLine.points[fishingLine.segmentCount-6].y-fishingLine.points[fishingLine.segmentCount-2].y, fishingLine.points[fishingLine.segmentCount-6].x-fishingLine.points[fishingLine.segmentCount-2].x)+Math.PI/2, 0.5);
+
+
+    // fish collision with hook
+	for(var f = 0; f < fishies.a.length; ++f){
+		var fish=fishies.a[f];
+
+		var p=hook.contact.toGlobal(PIXI.zero);
+		var dx=p.x-fish.x;
+		var dy=p.y-fish.y;
+		var d2=dx*dx+dy*dy;
+
+		if(d2 < fishies.innerCollision2){
+			addPop((fish.x+p.x)/2, (fish.y+p.y)/2, fishies.innerCollision);
+		}
+	}
 
     if(debugDraw){
     	// fish debug
@@ -428,4 +442,16 @@ function addBubble(_x,_y,_r,_life){
 	bubbles.push(bubble);
 
 	return bubble;
+}
+
+function addPop(_x,_y,_r){
+	for(var i = Math.random()*0.3; i < Math.PI*2; i+=Math.random()*2+0.5){
+    	var bubble=addBubble(
+    		_x+(Math.random()*_r/2-_r/2)*Math.cos(i),
+    		_y+(Math.random()*_r/2-_r/2)*Math.sin(i),
+    		Math.random(5)+5,
+    		Math.random()*10+10);
+    	bubble.vx=(Math.random()*5+5)*Math.cos(i);
+    	bubble.vy=(Math.random()*5+5)*Math.sin(i);
+	}
 }
