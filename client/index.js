@@ -82,7 +82,8 @@ $(document).ready(function(){
 		.add("fish_1","assets/img/fish_1.png")
 		.add("fish_2","assets/img/fish_2.png")
 		.add("hook","assets/img/hook.png")
-		.add("line","assets/img/line.png");
+		.add("line","assets/img/line.png")
+		.add("bubble","assets/img/bubble.png");
 
 	PIXI.loader
 		.on("progress", loadProgressHandler)

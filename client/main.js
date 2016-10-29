@@ -49,6 +49,9 @@ function init(){
 
 
 
+	bubbles=[];
+	world.bubbles=new PIXI.Container();
+	world.addChild(world.bubbles);
 
 
 	// fish setup
@@ -88,6 +91,7 @@ function init(){
 	}
 	fishingLine.strip=new PIXI.mesh.Rope(PIXI.loader.resources.line.texture, fishingLine.points);
 	world.addChild(fishingLine.strip);
+
 
 
 	graphics=new PIXI.Graphics();
@@ -137,9 +141,79 @@ function update(){
 	        fish.points[i].x = lerp(fish.points[i].x, fish.points[i+1].x+fishies.length/fishies.segmentCount*Math.cos(fish.a+wiggle), 1-(Math.abs(i-fishies.segmentCount/2)/fishies.segmentCount));
 	        fish.points[i].y = lerp(fish.points[i].y, fish.points[i+1].y+fishies.length/fishies.segmentCount*Math.sin(fish.a+wiggle), 1-(Math.abs(i-fishies.segmentCount/2)/fishies.segmentCount));
 	    }
+
+	    if(fish.bubbleTimer <= 0){
+		    fish.bubbleTimer=Math.random()*150+25;
+	    	var bubble=addBubble(
+	    		fish.x+Math.random()*fishies.length/3-fishies.length/6,
+	    		fish.y+Math.random()*fishies.length/3-fishies.length/6,
+	    		Math.random(5)+5,
+	    		Math.random()*50+50);
+	    	bubble.vx=fish.speed.x/4;
+	    	bubble.vy=fish.speed.y/4;
+		}else{
+			fish.bubbleTimer-=Math.max(1, Math.abs(fish.speed.x)+Math.abs(fish.speed.y));
+		}
     }
 
+    // bubbles update
+    for(var i = bubbles.length-1; i >=0; --i){
+    	var b=bubbles[i];
+    	b.age+=1;
+    	b.vy-=0.05;
+    	b.vx+=Math.sin(curTime/b.life)/50;
+    	b.vx*=0.95;
+    	b.vy*=0.95;
+    	b.y+=b.vy;
+    	b.x+=b.vx;
 
+    	if(b.age < b.life){
+	    	b.scale.x=easeOutCubic(b.age/b.life);
+	    	b.scale.y=easeOutCubic(b.age/b.life);
+	    }else{
+	    	b.scale.x=easeInCubic(2-b.age/b.life);
+	    	b.scale.y=easeInCubic(2-b.age/b.life);
+	    }
+    	if(b.y < -20 || b.age > b.life*2){
+    		bubbles.splice(i,1);
+    		world.bubbles.removeChild(b);
+    		b.destroy();
+    	}
+    }
+
+    // fish collision
+    
+    for(var a = 0; a < fishies.a.length; ++a){
+	var fish1=fishies.a[a];
+	for(var b = 0; b < fishies.a.length; ++b){
+		if(a==b){
+			continue;
+		}
+		var fish2=fishies.a[b];
+
+		var dx=fish2.x-fish1.x;
+		var dy=fish2.y-fish1.y;
+		var d2=dx*dx+dy*dy;
+
+		if(d2 < fishies.length*fishies.length/4){
+			var angle=Math.atan2(dy,dx);
+			fish1.speed.x-=Math.cos(angle)*5;
+			fish1.speed.y-=Math.sin(angle)*5;
+			fish2.speed.x+=Math.cos(angle)*5;
+			fish2.speed.y+=Math.sin(angle)*5;
+
+			for(var i = Math.random()*0.3; i < Math.PI*2; i+=Math.random()*2+0.5){
+		    	var bubble=addBubble(
+		    		(fish1.x+fish2.x)/2+(Math.random()*fishies.length/3-fishies.length/6)*Math.cos(i),
+		    		(fish1.y+fish2.y)/2+(Math.random()*fishies.length/3-fishies.length/6)*Math.sin(i),
+		    		Math.random(5)+5,
+		    		Math.random()*10+10);
+		    	bubble.vx=(Math.random()*5+5)*Math.cos(i);
+		    	bubble.vy=(Math.random()*5+5)*Math.sin(i);
+	    	}
+		}
+    }
+    }
 
     // fishing line
     
@@ -182,7 +256,7 @@ function update(){
     for(var f = 0; f < fishies.a.length; ++f){
     	var fish=fishies.a[f];
 	    // fish collision
-	    var collisionDist=50;
+	    var collisionDist=fishies.length/3;
 	    var collisionDist2=collisionDist*collisionDist;
 	    var collisionStrength=100;
 	    var closest=-1;
@@ -196,8 +270,21 @@ function update(){
 	    		var d=Math.sqrt(d2);
 
 	    		if(d < closestDist){
-	    			closestDist=d;
-	    			closest=i;
+
+	    			// check if segment is taken
+	    			var taken=false;
+    				for(var j = 0; j < fishies.a.length; ++j){
+    					if(i==fishies.a[j].grabbed){
+    						taken=true;
+    						break;
+						}
+    				}
+
+    				if(!taken){
+    					// save closest segment
+		    			closestDist=d;
+		    			closest=i;
+	    			}
 	    		}
 
 	    		dx/=d;
@@ -276,7 +363,8 @@ function addFish(){
 	var fish={
 		x:0,
 	 	y:0,
-	 	a:0
+	 	a:0,
+	 	bubbleTimer:0
 	};
 	fish.tex=PIXI.loader.resources["fish_"+(fishies.a.length+1).toString(10)].texture;
 	fish.points=[];
@@ -290,4 +378,20 @@ function addFish(){
 	world.addChild(fish.strip);
 
 	fishies.a.push(fish);
+}
+
+function addBubble(_x,_y,_r,_life){
+	var bubble = new PIXI.Sprite(PIXI.loader.resources.bubble.texture);
+	bubble.anchor.x=0.5;
+	bubble.anchor.y=0.5;
+	bubble.x=_x;
+	bubble.y=_y;
+	bubble.scale.x=0;
+	bubble.scale.y=0;
+	bubble.age=0;
+	bubble.life=_life;
+	world.bubbles.addChild(bubble);
+	bubbles.push(bubble);
+
+	return bubble;
 }
