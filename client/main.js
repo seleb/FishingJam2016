@@ -52,6 +52,10 @@ function init(){
 	bubbles=[];
 	world.bubbles=new PIXI.Container();
 	world.addChild(world.bubbles);
+	world.fishingLines=new PIXI.Container();
+	world.addChild(world.fishingLines);
+	world.fishies=new PIXI.Container();
+	world.addChild(world.fishies);
 
 
 	// fish setup
@@ -75,36 +79,17 @@ function init(){
 	fishies.a[0].y=size[1]/2;
 	fishies.a[1].y=size[1]/2;
 
-	hook = new PIXI.Sprite(PIXI.loader.resources.hook.texture);
-	hook.anchor.x=0.5;
-	hook.anchor.y=0.25;
 
-	hook.contact = new PIXI.Graphics();
-	if(debugDraw){
-		hook.contact.lineStyle(2, 0xCC4499);
-		hook.contact.drawCircle(0,0,20);
-		hook.contact.endFill();
-	}
-	hook.contact.x=-21;
-	hook.contact.y=20;
-	hook.addChild(hook.contact);
-
-	world.addChild(hook);
-
-	fishingLine={
-		points:[],
+	fishingLines={
+		a:[],
 		segmentCount:20,
-		segmentLength:5
+		segmentLength:15,
+		collision:15
 	};
-	for (var i = 0; i < fishingLine.segmentCount; i++){
-	    fishingLine.points.push(new PIXI.Point(
-	    	0,
-	    	i*fishingLine.segmentLength));
-		fishingLine.points[i].vx=0;
-		fishingLine.points[i].vy=0;
-	}
-	fishingLine.strip=new PIXI.mesh.Rope(PIXI.loader.resources.line.texture, fishingLine.points);
-	world.addChild(fishingLine.strip);
+	fishingLines.collision2=fishingLines.collision*fishingLines.collision;
+
+	addLine();
+	addLine();
 
 
 
@@ -227,133 +212,135 @@ function update(){
     }
 
     // fishing line
-    
-    var fishingLinePointsCopy=[];
-    for(var i = 0; i < fishingLine.segmentCount; ++i){
-	    fishingLinePointsCopy.push({
-	    	x:fishingLine.points[i].x,
-	    	y:fishingLine.points[i].y,
-	    	vx:fishingLine.points[i].vx,
-	    	vy:fishingLine.points[i].vy
-	    });
-	}
+    for(var l = 0; l < fishingLines.a.length; ++l){
+    	var fishingLine = fishingLines.a[l];
+	    var fishingLinePointsCopy=[];
+	    for(var i = 0; i < fishingLines.segmentCount; ++i){
+		    fishingLinePointsCopy.push({
+		    	x:fishingLine.points[i].x,
+		    	y:fishingLine.points[i].y,
+		    	vx:fishingLine.points[i].vx,
+		    	vy:fishingLine.points[i].vy
+		    });
+		}
 
-    fishingLine.points[0].x=mouse.x;
-    fishingLine.points[0].y=mouse.y;
-    fishingLine.points[0].vx=0;
-    fishingLine.points[0].vy=0;
+	    fishingLine.points[0].x=fishingLine.x;
+	    fishingLine.points[0].y=fishingLine.y;
+	    fishingLine.points[0].vx=0;
+	    fishingLine.points[0].vy=0;
 
-    // rope
-    for (var i = 1; i < fishingLine.segmentCount; ++i) {
-    	var dx=fishingLinePointsCopy[i-1].x-fishingLine.points[i].x;
-    	var dy=fishingLinePointsCopy[i-1].y-fishingLine.points[i].y;
-    	var d=Math.sqrt(dx*dx+dy*dy);
-    	dx/=d;
-    	dy/=d;
-    	d=(fishingLine.segmentLength-d)/2;
-    	fishingLine.points[i].vx-=dx*d;
-		fishingLine.points[i].vy-=dy*d;
-    	fishingLine.points[i-1].vx+=dx*d;
-		fishingLine.points[i-1].vy+=dy*d;
-    }
-
-    // gravity
-    for (var i = 0; i < fishingLine.segmentCount; ++i) {
-    	fishingLine.points[i].vy+=0.5;
-    }
-    fishingLine.points[fishingLine.segmentCount-1].vy+=1;
-
-
-    for(var f = 0; f < fishies.a.length; ++f){
-    	var fish=fishies.a[f];
-	    // fish collision with line
-	    var collisionStrength=50;
-	    var closest=-1;
-	    var closestDist=999999999;
-	    for (var i = 0; i < fishingLine.segmentCount; ++i) {
-	    	var dx=fishingLinePointsCopy[i].x-fish.x;
-	    	var dy=fishingLinePointsCopy[i].y-fish.y;
-	    	var a=Math.atan2(dy,dx);
-	    	var d2=dx*dx+dy*dy;
-	    	if(d2 < fishies.outerCollision2){
-	    		var d=Math.sqrt(d2);
-
-	    		if(d < closestDist){
-
-	    			// check if segment is taken
-	    			var taken=false;
-    				for(var j = 0; j < fishies.a.length; ++j){
-    					if(i==fishies.a[j].grabbed){
-    						taken=true;
-    						break;
-						}
-    				}
-
-    				if(!taken){
-    					// save closest segment
-		    			closestDist=d;
-		    			closest=i;
-	    			}
-	    		}
-
-	    		dx/=d;
-	    		dy/=d;
-	    		d=1-Math.sqrt(d2)/fishies.outerCollision;
-	    		if(fishingLine.segmentCount-i < 5){
-	    			d*=Math.max(0, (fishingLine.segmentCount-i-2)/5);
-	    		}
-	    		fishingLine.points[i].vx+=Math.cos(a)*d*collisionStrength;
-	    		fishingLine.points[i].vy+=Math.sin(a)*d*collisionStrength;
-	    	}
+	    // rope
+	    for (var i = 1; i < fishingLines.segmentCount; ++i) {
+	    	var dx=fishingLinePointsCopy[i-1].x-fishingLine.points[i].x;
+	    	var dy=fishingLinePointsCopy[i-1].y-fishingLine.points[i].y;
+	    	var d=Math.sqrt(dx*dx+dy*dy);
+	    	dx/=d;
+	    	dy/=d;
+	    	d=(fishingLines.segmentLength-d)/2;
+	    	fishingLine.points[i].vx-=dx*d;
+			fishingLine.points[i].vy-=dy*d;
+	    	fishingLine.points[i-1].vx+=dx*d;
+			fishingLine.points[i-1].vy+=dy*d;
 	    }
 
-	    // fish pickup line
-	    if(gamepads.isJustDown(gamepads.A+f)){
-	    	fish.grabbed=closest;
-	    }if(gamepads.isJustUp(gamepads.A+f)){
-	    	fish.grabbed=-1;
+	    // gravity
+	    for (var i = 0; i < fishingLines.segmentCount; ++i) {
+	    	fishingLine.points[i].vy+=0.5;
+	    }
+	    fishingLine.points[fishingLines.segmentCount-1].vy+=1;
+
+
+	    for(var f = 0; f < fishies.a.length; ++f){
+	    	var fish=fishies.a[f];
+		    // fish collision with line
+		    var collisionStrength=50;
+		    var closest=-1;
+		    var closestDist=999999999;
+		    for (var i = 0; i < fishingLines.segmentCount; ++i) {
+		    	var dx=fishingLinePointsCopy[i].x-fish.x;
+		    	var dy=fishingLinePointsCopy[i].y-fish.y;
+		    	var a=Math.atan2(dy,dx);
+		    	var d2=dx*dx+dy*dy;
+		    	if(d2 < fishies.outerCollision2){
+		    		var d=Math.sqrt(d2);
+
+		    		if(d < closestDist){
+
+		    			// check if segment is taken
+		    			var taken=false;
+	    				for(var j = 0; j < fishies.a.length; ++j){
+	    					if(i==fishies.a[j].grabbed){
+	    						taken=true;
+	    						break;
+							}
+	    				}
+
+	    				if(!taken){
+	    					// save closest segment
+			    			closestDist=d;
+			    			closest=i;
+		    			}
+		    		}
+
+		    		dx/=d;
+		    		dy/=d;
+		    		d=1-Math.sqrt(d2)/fishies.outerCollision;
+		    		if(fishingLines.segmentCount-i < 5){
+		    			d*=Math.max(0, (fishingLines.segmentCount-i-2)/5);
+		    		}
+		    		fishingLine.points[i].vx+=Math.cos(a)*d*collisionStrength;
+		    		fishingLine.points[i].vy+=Math.sin(a)*d*collisionStrength;
+		    	}
+		    }
+
+		    // fish pickup line
+		    if(gamepads.isJustDown(gamepads.A+f)){
+		    	fish.grabbed=closest;
+		    }if(gamepads.isJustUp(gamepads.A+f)){
+		    	fish.grabbed=-1;
+		    }
+
+		    // fish drag line
+		    if(gamepads.isDown(gamepads.A+f)){
+		    	if(fish.grabbed>=0){
+		    		fishingLine.points[fish.grabbed].x=fish.x - Math.cos(fish.a)*fishies.length/3;
+		    		fishingLine.points[fish.grabbed].y=fish.y - Math.sin(fish.a)*fishies.length/3;
+		    		fishingLine.points[fish.grabbed].vx=0;
+		    		fishingLine.points[fish.grabbed].vy=0;
+		    	}
+		    }
+		}
+
+
+		
+
+		// "integrate" fishing line
+	    for (var i = 1; i < fishingLines.segmentCount; ++i) {
+	    	fishingLine.points[i].vx*=0.9;
+			fishingLine.points[i].vy*=0.9;
+
+	    	fishingLine.points[i].x+=fishingLine.points[i].vx;
+			fishingLine.points[i].y+=fishingLine.points[i].vy;
 	    }
 
-	    // fish drag line
-	    if(gamepads.isDown(gamepads.A+f)){
-	    	if(fish.grabbed>=0){
-	    		fishingLine.points[fish.grabbed].x=fish.x - Math.cos(fish.a)*fishies.length/3;
-	    		fishingLine.points[fish.grabbed].y=fish.y - Math.sin(fish.a)*fishies.length/3;
-	    		fishingLine.points[fish.grabbed].vx=0;
-	    		fishingLine.points[fish.grabbed].vy=0;
-	    	}
-	    }
-	}
+	    // update hook
+	    fishingLine.hook.x=fishingLine.points[fishingLines.segmentCount-1].x;
+	    fishingLine.hook.y=fishingLine.points[fishingLines.segmentCount-1].y;
+	    fishingLine.hook.rotation=slerp(fishingLine.hook.rotation, Math.atan2(fishingLine.points[fishingLines.segmentCount-6].y-fishingLine.points[fishingLines.segmentCount-2].y, fishingLine.points[fishingLines.segmentCount-6].x-fishingLine.points[fishingLines.segmentCount-2].x)+Math.PI/2, 0.5);
 
 
-	
+	    // fish collision with hook
+		for(var f = 0; f < fishies.a.length; ++f){
+			var fish=fishies.a[f];
 
-	// "integrate" fishing line
-    for (var i = 1; i < fishingLine.segmentCount; ++i) {
-    	fishingLine.points[i].vx*=0.9;
-		fishingLine.points[i].vy*=0.9;
+			var p=fishingLine.contact.toGlobal(PIXI.zero);
+			var dx=p.x-fish.x;
+			var dy=p.y-fish.y;
+			var d2=Math.sqrt(dx*dx+dy*dy);
 
-    	fishingLine.points[i].x+=fishingLine.points[i].vx;
-		fishingLine.points[i].y+=fishingLine.points[i].vy;
-    }
-
-    // update hook
-    hook.x=fishingLine.points[fishingLine.segmentCount-1].x;
-    hook.y=fishingLine.points[fishingLine.segmentCount-1].y;
-    hook.rotation=slerp(hook.rotation, Math.atan2(fishingLine.points[fishingLine.segmentCount-6].y-fishingLine.points[fishingLine.segmentCount-2].y, fishingLine.points[fishingLine.segmentCount-6].x-fishingLine.points[fishingLine.segmentCount-2].x)+Math.PI/2, 0.5);
-
-
-    // fish collision with hook
-	for(var f = 0; f < fishies.a.length; ++f){
-		var fish=fishies.a[f];
-
-		var p=hook.contact.toGlobal(PIXI.zero);
-		var dx=p.x-fish.x;
-		var dy=p.y-fish.y;
-		var d2=dx*dx+dy*dy;
-
-		if(d2 < fishies.innerCollision2){
-			addPop((fish.x+p.x)/2, (fish.y+p.y)/2, fishies.innerCollision);
+			if(d2 < fishies.innerCollision+fishingLines.collision){
+				addPop((fish.x+p.x)/2, (fish.y+p.y)/2, fishies.innerCollision);
+			}
 		}
 	}
 
@@ -423,7 +410,7 @@ function addFish(){
 		fish.strip.addChild(fish.debugGraphics);
 	}
 
-	world.addChild(fish.strip);
+	world.fishies.addChild(fish.strip);
 
 	fishies.a.push(fish);
 }
@@ -454,4 +441,45 @@ function addPop(_x,_y,_r){
     	bubble.vx=(Math.random()*5+5)*Math.cos(i);
     	bubble.vy=(Math.random()*5+5)*Math.sin(i);
 	}
+}
+
+function addLine(){
+	var x=size[0]*Math.random();
+
+	var fishingLine={
+		points:[],
+		x:x,
+		y:0
+	};
+
+	fishingLine.hook = new PIXI.Sprite(PIXI.loader.resources.hook.texture);
+	fishingLine.hook.anchor.x=0.5;
+	fishingLine.hook.anchor.y=0.25;
+
+	fishingLine.contact = new PIXI.Graphics();
+	if(debugDraw){
+		fishingLine.contact.lineStyle(2, 0xCC4499);
+		fishingLine.contact.drawCircle(0,0,fishingLines.collision);
+		fishingLine.contact.endFill();
+	}
+	fishingLine.contact.x=-21;
+	fishingLine.contact.y=20;
+	fishingLine.hook.addChild(fishingLine.contact);
+
+
+	
+	for (var i = 0; i < fishingLines.segmentCount; i++){
+	    fishingLine.points.push(new PIXI.Point(
+	    	x,
+	    	i*fishingLines.segmentLength));
+		fishingLine.points[i].vx=0;
+		fishingLine.points[i].vy=0;
+	}
+	fishingLine.strip=new PIXI.mesh.Rope(PIXI.loader.resources.line.texture, fishingLine.points);
+	world.fishingLines.addChild(fishingLine.strip);
+	fishingLine.strip.addChild(fishingLine.hook);
+
+	fishingLines.a.push(fishingLine);
+
+	return fishingLine;
 }
