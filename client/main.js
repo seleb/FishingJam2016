@@ -147,6 +147,20 @@ function update(){
 			fish.speed.x*=0.9;
 			fish.speed.y*=0.9;
 
+			if(fish.x < 50){
+				fish.speed.x+=(50-fish.x)/10;
+			}else if(fish.x > size[0]-50){
+				fish.speed.x-=(50-(size[0]-fish.x))/10;
+			}
+
+			if(fish.y < 50){
+				fish.speed.y+=(50-fish.y)/10;
+			}else if(fish.y > size[1]-50){
+				fish.speed.y-=(50-(size[1]-fish.y))/10;
+			}
+
+
+
 	    }else{
 			avg.x+=size[0]/2;
 			avg.y+=size[1]/2;
