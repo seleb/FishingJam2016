@@ -82,11 +82,6 @@ function init(){
 	fishies.innerCollision2 = fishies.innerCollision*fishies.innerCollision;
 	fishies.outerCollision2 = fishies.outerCollision*fishies.outerCollision;
 	
-	addFish(0);
-	addFish(1);
-	addFish(2);
-	addFish(3);
-
 
 	fishingLines={
 		a:[],
@@ -98,15 +93,80 @@ function init(){
 	fishingLines.collision2=fishingLines.collision*fishingLines.collision;
 
 
+	menu_title = new PIXI.Sprite(PIXI.loader.resources.menu_title.texture);
+	menu_title.anchor.x=0.5;
+	menu_title.anchor.y=0.5;
+	menu_title.x=size.x/2;
+	menu_title.y=size.y/2;
+
+
+	menu_joins=[];
+	menu_joins[0] = new PIXI.Sprite(PIXI.loader.resources.join.texture);
+	menu_joins[0].anchor.x=0.5;
+	menu_joins[0].anchor.y=0.5;
+	menu_joins[0].x=size.x/4;
+	menu_joins[0].y=size.y/4+size.y/8;
+	menu_joins[0].ty=menu_joins[0].y;
+
+	menu_joins[1] = new PIXI.Sprite(PIXI.loader.resources.join.texture);
+	menu_joins[1].anchor.x=0.5;
+	menu_joins[1].anchor.y=0.5;
+	menu_joins[1].x=size.x/4*3;
+	menu_joins[1].y=size.y/4+size.y/8;
+	menu_joins[1].ty=menu_joins[1].y;
+
+	menu_joins[2] = new PIXI.Sprite(PIXI.loader.resources.join.texture);
+	menu_joins[2].anchor.x=0.5;
+	menu_joins[2].anchor.y=0.5;
+	menu_joins[2].x=size.x/4;
+	menu_joins[2].y=size.y/4*3+size.y/8;
+	menu_joins[2].ty=menu_joins[2].y;
+
+	menu_joins[3] = new PIXI.Sprite(PIXI.loader.resources.join.texture);
+	menu_joins[3].anchor.x=0.5;
+	menu_joins[3].anchor.y=0.5;
+	menu_joins[3].x=size.x/4*3;
+	menu_joins[3].y=size.y/4*3+size.y/8;
+	menu_joins[3].ty=menu_joins[3].y;
+
+	menu_restart = new PIXI.Sprite(PIXI.loader.resources.restart.texture);
+	menu_restart.anchor.x=0.5;
+	menu_restart.anchor.y=0.5;
+	menu_restart.x=size.x/2;
+	menu_restart.y=size.y/2+size.y/8;
+
+	menu_player_wins = new PIXI.Sprite(PIXI.loader.resources.player_wins.texture);
+	menu_player_wins.anchor.x=0.5;
+	menu_player_wins.anchor.y=0.5;
+	menu_player_wins.x=size.x/2;
+	menu_player_wins.y=size.y/2;
+
+	menu_tie = new PIXI.Sprite(PIXI.loader.resources.tie.texture);
+	menu_tie.anchor.x=0.5;
+	menu_tie.anchor.y=0.5;
+	menu_tie.x=size.x/2;
+	menu_tie.y=size.y/2;
+
+	menu_player_wins_a=[];
+	for(var i = 1; i <= 4; ++i){
+		var p = new PIXI.Sprite(PIXI.loader.resources["player_wins_"+i.toString(10)].texture);
+		p.anchor.x=0.5;
+		p.anchor.y=0.5;
+		p.x=size.x/2;
+		p.y=size.y/2;
+		menu_player_wins_a.push(p);
+	}
+
+	world.menu = new PIXI.Container();
+	world.addChild(world.menu);
+
 	// screen border
 	border = new PIXI.Sprite(PIXI.loader.resources.border.texture);
 	border.scale.x=2;
 	border.scale.y=2;
 	world.addChild(border);
 
-	winStartTime=-1;
-	hooked=0;
-	winner=null;
+	showMenu();
 
 	// start the main loop
 	window.onresize = onResize;
@@ -115,21 +175,116 @@ function init(){
 }
 
 
+function showMenu(){
+	for(var i = 0; i < fishies.a.length; ++i){
+		var fish = fishies.a[i];
+		world.fishies.removeChild(fish.strip);
+		fish.strip.destroy();
+	}
+	fishies.a=[];
+
+	for(var i = 0; i < fishingLines.a.length; ++i){
+		var fishingLine = fishingLines.a[i];
+		world.fishingLines.removeChild(fishingLine.strip);
+		fishingLine.strip.destroy();
+	}
+	fishingLines.a=[];
+	fishingLines.addTimer=0;
+
+	gameStarted=false;
+
+	world.menu.removeChild(menu_player_wins);
+	world.menu.removeChild(menu_tie);
+	world.menu.removeChild(menu_restart);
+	for(var i = 0; i < 4; ++i){
+		world.menu.removeChild(menu_player_wins_a[i]);
+		menu_joins[i].texture = PIXI.loader.resources.join.texture;
+		menu_joins[i].y=menu_joins[i].ty;
+	}
+
+	world.menu.addChild(menu_joins[0]);
+	world.menu.addChild(menu_joins[1]);
+	world.menu.addChild(menu_joins[2]);
+	world.menu.addChild(menu_joins[3]);
+	world.menu.addChild(menu_title);
+
+	winStartTime=-1;
+	hooked=0;
+	winner=null;
+
+	players_joined=[false,false,false,false];
+	players_ready=[false,false,false,false];
+	gameStarted=false;
+}
+
+function startGame(){
+	gameStarted=true;
+	for(var i = 0; i < 4; ++i){
+		world.menu.removeChild(menu_joins[i]);
+	}
+	world.menu.removeChild(menu_title);
+}
+
 function update(){
 
 	//////////////////////////
 	// game logic goes here //
 	//////////////////////////
 	
-	var avg={
-		x:0,
-		y:0
-	};
+	if(!gameStarted){
+		updateMenu();
+	}else{
+		updateGame();
+	}
 
+	updateAlways();
+	
+
+	screen_filter.uniforms.time = curTime/1000;
+
+	// update input managers
+	keys.update();
+	gamepads.update();
+}
+
+
+function updateMenu(){
+	var ready=fishies.a.length>1;
+	for(var i = 0; i < 4; ++i){
+		var input = getInput(i);
+
+		if(input.startedGrabbing){
+			if(!players_joined[i]){
+				players_joined[i]=true;
+				addFish(i);
+				menu_joins[i].texture=PIXI.loader.resources.ready.texture;
+				menu_joins[i].y-=20;
+			}else if(!players_ready[i]){
+				players_ready[i]=true;
+				menu_joins[i].texture=PIXI.loader.resources.waiting.texture;
+				menu_joins[i].y-=20;
+			}else{
+				// idk you're just pressing buttons now
+			}
+		}
+
+		if(players_joined[i] && !players_ready[i]){
+			ready=false;
+		}
+
+		menu_joins[i].y = lerp(menu_joins[i].y, menu_joins[i].ty, 0.1);
+	}
+
+	if(ready){
+		startGame();
+	}
+}
+
+function updateGame(){
 	--fishingLines.addTimer;
 	if(winStartTime < 0 && fishingLines.addTimer<=0 && fishingLines.a.length < 128){
 		addLine();
-		fishingLines.addTimer=(Math.random()*1000+500)/fishingLines.a.length;
+		fishingLines.addTimer=(Math.random()*500+500)/fishingLines.a.length;
 	}
 
 	// check for winner
@@ -147,24 +302,48 @@ function update(){
 	if(winStartTime > 0 && curTime - winStartTime > 2000){
 		if(winner==null){
 			if(hooked == fishies.a.length){
-				winner="tie!";
+				winner="tie";
+				world.menu.addChild(menu_tie);
 			}else{
 				for(var i = 0; i < fishies.a.length; ++i){
 					if(fishies.a[i].caught==null){
-						winner="player "+(i+1).toString(10)+" wins!";
+						winner=fishies.a[i].id;
+						world.menu.addChild(menu_player_wins);
+						world.menu.addChild(menu_player_wins_a[winner]);
 						break;
 					}
 				}
 			}
 
-			var t=new PIXI.Text(winner);
-			world.addChild(t);
-			t.anchor.x=0.5;
-			t.anchor.y=0.5;
-			t.x=size.x/2;
-			t.y=size.y/2;
+			world.menu.addChild(menu_restart);
+		}else{
+			var reset=false;
+			for(var i = 0; i < fishies.a.length; ++i){
+				if(getInput(i).startedGrabbing){
+					reset=true;
+					break;
+				}
+			}
+
+			if(reset){
+				showMenu();
+			}
 		}
 	}
+}
+
+
+function updateAlways(){
+
+	menu_title.rotation = Math.sin(curTime/1000)/20;
+	menu_title.y=size.y/2 + Math.sin(curTime/2000)*5;
+	menu_title.x=size.x/2 + Math.sin(curTime/3000)*5;
+
+
+	var avg={
+		x:0,
+		y:0
+	};
 
 	// fish update
 	for(var f = 0; f < fishies.a.length; ++f){
@@ -238,9 +417,10 @@ function update(){
 			fish.bubbleTimer-=Math.max(1, Math.abs(fish.speed.x)+Math.abs(fish.speed.y));
 		}
     }
-
-    avg.x/=fishies.a.length;
-	avg.y/=fishies.a.length;
+    if(fishies.a.length > 0){
+	    avg.x/=fishies.a.length;
+		avg.y/=fishies.a.length;
+	}
 
 	avg.x=clamp(size.x/4,avg.x,size.x/4*3);
 	avg.y=clamp(size.y/4,avg.y,size.y/4*3);
@@ -488,12 +668,6 @@ function update(){
 			g.endFill();
 		}
 	}
-
-	screen_filter.uniforms.time = curTime/1000;
-
-	// update input managers
-	keys.update();
-	gamepads.update();
 }
 
 function render(){

@@ -85,17 +85,26 @@ $(document).ready(function(){
 
 	PIXI.loader
 		.add("screen_shader","assets/screen_shader.frag")
-		.add("fish_1","assets/img/fish_1.png")
-		.add("fish_2","assets/img/fish_2.png")
-		.add("fish_3","assets/img/fish_3.png")
-		.add("fish_4","assets/img/fish_4.png")
 		.add("hook","assets/img/hook.png")
 		.add("line","assets/img/line.png")
 		.add("bubble","assets/img/bubble.png")
 		.add("background_1","assets/img/background_1.png")
 		.add("background_2","assets/img/background_2.png")
 		.add("background_3","assets/img/background_3.png")
+		.add("menu_title","assets/img/menu_title.png")
+		.add("join","assets/img/join.png")
+		.add("ready","assets/img/ready.png")
+		.add("waiting","assets/img/waiting.png")
+		.add("restart","assets/img/restart.png")
+		.add("player_wins","assets/img/player_wins.png")
+		.add("tie","assets/img/tie.png")
 		.add("border","assets/img/border.png");
+
+	for(var i = 1; i <= 4; ++i){
+		PIXI.loader
+		.add("fish_"+i.toString(10), "assets/img/fish_"+i.toString(10)+".png")
+		.add("player_wins_"+i.toString(10), "assets/img/player_wins_"+i.toString(10)+".png");
+	}
 
 	PIXI.loader
 		.on("progress", loadProgressHandler)
