@@ -84,6 +84,8 @@ $(document).ready(function(){
 		.add("screen_shader","assets/screen_shader.frag")
 		.add("fish_1","assets/img/fish_1.png")
 		.add("fish_2","assets/img/fish_2.png")
+		.add("fish_3","assets/img/fish_3.png")
+		.add("fish_4","assets/img/fish_4.png")
 		.add("hook","assets/img/hook.png")
 		.add("line","assets/img/line.png")
 		.add("bubble","assets/img/bubble.png")

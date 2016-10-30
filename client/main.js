@@ -84,6 +84,8 @@ function init(){
 	
 	addFish();
 	addFish();
+	addFish();
+	addFish();
 
 	fishies.a[0].x=size[0]/3;
 	fishies.a[1].x=size[0]/3*2;
