@@ -104,6 +104,13 @@ $(document).ready(function(){
 		loop:false,
 		volume:1
 	});
+	sounds["music"]=new Howl({
+		urls:["assets/audio/music.ogg"],
+		autoplay:true,
+		loop:true,
+		volume:0
+	});
+	sounds["music"].fadeIn(0.5,1000);
 
 	PIXI.loader
 		.add("hook","assets/img/hook.png")
