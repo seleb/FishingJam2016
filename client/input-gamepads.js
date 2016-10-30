@@ -104,15 +104,15 @@ var gamepads={
 		for(var i=0; i < this.players.length; ++i){
 			var p=this.getPlayer(i);
 			if(p && p!=null){
-				for(var i=0; i < p.buttons.length; ++i){
-					if(p.buttons[i].pressed){
-						p.justDown[i]=!(p.down[i]===true);
-						p.down[i]=true;
-						p.justUp[i]=false;
+				for(var j=0; j < p.buttons.length; ++j){
+					if(p.buttons[j].pressed){
+						p.justDown[j]=!(p.down[j]===true);
+						p.down[j]=true;
+						p.justUp[j]=false;
 					}else{
-						p.justUp[i]=p.down[i]===true;
-						p.down[i]=false;
-						p.justDown[i]=false;
+						p.justUp[j]=p.down[j]===true;
+						p.down[j]=false;
+						p.justDown[j]=false;
 					}
 				}
 			}
