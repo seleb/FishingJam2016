@@ -46,3 +46,10 @@ function toggleFullscreen(){
 		}
 	}
 }
+function toggleMute(){
+	if(Howler._muted){
+		Howler.unmute();
+	}else{
+		Howler.mute();
+	}
+}

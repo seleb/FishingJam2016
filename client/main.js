@@ -45,6 +45,8 @@ function init(){
 	$(document).on("keydown",function(event){
 		if(event.keyCode == keys.F){
 			toggleFullscreen();
+		}if(event.keyCode == keys.M){
+			toggleMute();
 		}
 	});
 	
