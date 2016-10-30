@@ -278,7 +278,7 @@ function updateGame(){
 	--fishingLines.addTimer;
 	if(winStartTime < 0 && fishingLines.addTimer<=0 && fishingLines.a.length < 128){
 		addLine();
-		fishingLines.addTimer=(Math.random()*500+500)/fishingLines.a.length;
+		fishingLines.addTimer=(Math.random()*500)/fishingLines.a.length+200;
 	}
 
 	// check for winner
