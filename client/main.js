@@ -554,7 +554,7 @@ function updateAlways(){
 		    	var dy=fishingLinePointsCopy[i].y-fish.y;
 		    	var a=Math.atan2(dy,dx);
 		    	var d2=dx*dx+dy*dy;
-		    	if(d2 < fishies.outerCollision2){
+		    	if(i!=0 && d2 < fishies.outerCollision2){
 		    		var d=Math.sqrt(d2);
 
 		    		if(d < closestDist){
