@@ -17,11 +17,12 @@ var mouse={
 	x:0,
 	y:0
 };
-var size=[500,300];
+var size=[1024,768];
 
 var sounds=[];
 
-var debugDraw=true;
+var debugDraw=false;
+var scaleMode=1;
 
 $(document).ready(function(){
 
@@ -85,7 +86,11 @@ $(document).ready(function(){
 		.add("fish_2","assets/img/fish_2.png")
 		.add("hook","assets/img/hook.png")
 		.add("line","assets/img/line.png")
-		.add("bubble","assets/img/bubble.png");
+		.add("bubble","assets/img/bubble.png")
+		.add("background_1","assets/img/background_1.png")
+		.add("background_2","assets/img/background_2.png")
+		.add("background_3","assets/img/background_3.png")
+		.add("border","assets/img/border.png");
 
 	PIXI.loader
 		.on("progress", loadProgressHandler)
@@ -122,20 +127,42 @@ function onResize() {
 function _resize(){
 	var w=$("#display").innerWidth();
 	var h=$("#display").innerHeight();
-	renderer.view.style.width=w+"px";
-	renderer.view.style.height=h+"px";
+	var ratio=size[0]/size[1];
 
-	renderer.resize(w,h);
-	renderTexture.baseTexture.resize(w,h);
-	console.log("Resized",size,w,h);
+	
+	if(w/h < ratio){
+		h = Math.round(w/ratio);
+	}else{
+		w = Math.round(h*ratio);
+	}
+	
 
-	size[0]=w;
-	size[1]=h;
+	var aw,ah;
 
-	bg.clear();
-	bg.beginFill(0xFFFFFF);
-	bg.drawRect(0,0,size[0],size[1]);
-	bg.endFill();
+	if(scaleMode==0){
+		aw=size[0];
+		ah=size[1];
+
+
+		do{
+			aw+=size[0];
+			ah+=size[1];
+		}while(aw <= w || ah <= h);
+
+		aw-=size[0];
+		ah-=size[1];
+	}else if(scaleMode==1){
+		aw=w;
+		ah=h;
+	}else{
+		aw=size[0];
+		ah=size[1];
+	}
+
+	renderer.view.style.width=aw+"px";
+	renderer.view.style.height=ah+"px";
+
+	console.log("Resized",size,aw,ah);
 }
 
 PIXI.zero=new PIXI.Point(0,0);

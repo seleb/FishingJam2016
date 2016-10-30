@@ -35,8 +35,18 @@ function init(){
 
 
 	// screen background
-	bg = new PIXI.Graphics();
-	world.addChild(bg);
+	bgs=[];
+	for(var i = 1; i <= 3; ++i){
+		var bg = new PIXI.Sprite(PIXI.loader.resources["background_"+i.toString(10)].texture);
+		bg.scale.x=bg.scale.y=2;
+		bg.anchor.x=0.5;
+		bg.anchor.y=0.5;
+		bg.x=size[0]/2;
+		bg.y=size[1]/2;
+		world.addChild(bg);
+
+		bgs.push(bg);
+	}
 
 
 	$(document).on("keydown",function(event){
@@ -63,11 +73,12 @@ function init(){
 	fishies={
 		a:[],
 		segmentCount:16,
-		length:128
+		length:128,
+		speedMult:1.4
 	};
 	fishies.segmentLength=fishies.length/fishies.segmentCount;
-	fishies.innerCollision = fishies.length/5;
-	fishies.outerCollision = fishies.length/3;
+	fishies.innerCollision = fishies.length/6;
+	fishies.outerCollision = fishies.length/4;
 	fishies.innerCollision2 = fishies.innerCollision*fishies.innerCollision;
 	fishies.outerCollision2 = fishies.outerCollision*fishies.outerCollision;
 	
@@ -92,9 +103,12 @@ function init(){
 	addLine();
 
 
+	// screen border
+	border = new PIXI.Sprite(PIXI.loader.resources.border.texture);
+	border.scale.x=2;
+	border.scale.y=2;
+	world.addChild(border);
 
-	graphics=new PIXI.Graphics();
-	world.addChild(graphics);
 
 	// start the main loop
 	window.onresize = onResize;
@@ -109,21 +123,38 @@ function update(){
 	// game logic goes here //
 	//////////////////////////
 	
+	var avg={
+		x:0,
+		y:0
+	};
+
 	// fish update
 	for(var f = 0; f < fishies.a.length; ++f){
 		var fish=fishies.a[f];
 
-		fish.input={
-			dx:gamepads.getAxis(f*2),
-			dy:gamepads.getAxis(f*2+1)
-		};
+		if(fish.caught==null){
+			avg.x+=fish.x;
+			avg.y+=fish.y;
 
-		fish.speed.x+=fish.input.dx*1.4;
-		fish.speed.y+=fish.input.dy*1.4;
+			fish.input={
+				dx:gamepads.getAxis(f*2),
+				dy:gamepads.getAxis(f*2+1)
+			};
 
-		fish.speed.x*=0.9;
-		fish.speed.y*=0.9;
+			fish.speed.x+=fish.input.dx*fishies.speedMult;
+			fish.speed.y+=fish.input.dy*fishies.speedMult;
 
+			fish.speed.x*=0.9;
+			fish.speed.y*=0.9;
+
+	    }else{
+			avg.x+=size[0]/2;
+			avg.y+=size[1]/2;
+
+	    	var p=fish.caught.contact.toGlobal(PIXI.zero);
+	    	fish.speed.x=p.x-fish.x;
+	    	fish.speed.y=p.y-fish.y;
+	    }
 	    // fish
 	    fish.a=slerp(fish.a,Math.atan2(fish.speed.y,fish.speed.x)+Math.PI,0.5);
 
@@ -155,6 +186,22 @@ function update(){
 		}
     }
 
+    avg.x/=fishies.a.length;
+	avg.y/=fishies.a.length;
+
+	avg.x=clamp(size[0]/4,avg.x,size[0]/4*3);
+	avg.y=clamp(size[1]/4,avg.y,size[1]/4*3);
+
+    // background update
+    for(var i = 3; i > 0; --i){
+	    avg.x=lerp(avg.x,size[0]/2,0.5);
+	    avg.y=lerp(avg.y,size[1]/2,0.5);
+
+	    var bg=bgs[i-1];
+	    bg.x=lerp(bg.x,avg.x,0.04);
+	    bg.y=lerp(bg.y,avg.y,0.04);
+    }
+
     // bubbles update
     for(var i = bubbles.length-1; i >=0; --i){
     	var b=bubbles[i];
@@ -184,9 +231,14 @@ function update(){
     
     for(var a = 0; a < fishies.a.length; ++a){
 		var fish1=fishies.a[a];
+		if(fish1.caught!=null){
+			continue;
+		}
 		for(var b = a+1; b < fishies.a.length; ++b){
 			var fish2=fishies.a[b];
-
+			if(fish2.caught!=null){
+				continue;
+			}
 			var dx=fish2.x-fish1.x;
 			var dy=fish2.y-fish1.y;
 			var d2=dx*dx+dy*dy;
@@ -207,6 +259,7 @@ function update(){
 				fish2.speed.y+=Math.sin(angle)*15;
 
 				addPop((fish1.x+fish2.x)/2, (fish1.y+fish2.y)/2, fishies.innerCollision);
+				kick(20);
 			}
 	    }
     }
@@ -295,23 +348,26 @@ function update(){
 		    }
 
 		    // fish pickup line
-		    if(gamepads.isJustDown(gamepads.A+f) && closest >= 0){
-		    	fish.grabbed={
-		    		line:l,
-		    		segment:closest
-		    	};
-		    }if(gamepads.isJustUp(gamepads.A+f)){
-		    	fish.grabbed=null;
-		    }
+		    if(fishingLine.caught==null && fish.caught==null){
+			    if(gamepads.isJustDown(gamepads.A+f) && closest >= 0){
+			    	fish.grabbed={
+			    		line:l,
+			    		segment:closest
+			    	};
+			    	addPop(fishingLine.points[closest].x,fishingLine.points[closest].y,fishies.outerCollision);
+			    }if(gamepads.isJustUp(gamepads.A+f)){
+			    	fish.grabbed=null;
+			    }
 
-		    // fish drag line
-		    if(gamepads.isDown(gamepads.A+f)){
-		    	if(fish.grabbed!=null && fish.grabbed.line==l){
-		    		fishingLine.points[fish.grabbed.segment].x=fish.x - Math.cos(fish.a)*fishies.length/3;
-		    		fishingLine.points[fish.grabbed.segment].y=fish.y - Math.sin(fish.a)*fishies.length/3;
-		    		fishingLine.points[fish.grabbed.segment].vx=0;
-		    		fishingLine.points[fish.grabbed.segment].vy=0;
-		    	}
+			    // fish drag line
+			    if(gamepads.isDown(gamepads.A+f)){
+			    	if(fish.grabbed!=null && fish.grabbed.line==l){
+			    		fishingLine.points[fish.grabbed.segment].x=fish.x - Math.cos(fish.a)*fishies.outerCollision;
+			    		fishingLine.points[fish.grabbed.segment].y=fish.y - Math.sin(fish.a)*fishies.outerCollision;
+			    		fishingLine.points[fish.grabbed.segment].vx=0;
+			    		fishingLine.points[fish.grabbed.segment].vy=0;
+			    	}
+			    }
 		    }
 		}
 
@@ -344,6 +400,7 @@ function update(){
 
 			if(d2 < fishies.innerCollision+fishingLines.collision){
 				addPop((fish.x+p.x)/2, (fish.y+p.y)/2, fishies.innerCollision);
+				hook(fishingLine,fish);
 			}
 		}
 	}
@@ -398,7 +455,8 @@ function addFish(){
 		x:0,
 	 	y:0,
 	 	a:0,
-	 	bubbleTimer:0
+	 	bubbleTimer:0,
+	 	caught:null
 	};
 	fish.tex=PIXI.loader.resources["fish_"+(fishies.a.length+1).toString(10)].texture;
 	fish.points=[];
@@ -453,7 +511,8 @@ function addLine(){
 	var fishingLine={
 		points:[],
 		x:x,
-		y:0
+		y:0,
+		caught:null
 	};
 
 	fishingLine.hook = new PIXI.Sprite(PIXI.loader.resources.hook.texture);
@@ -486,4 +545,21 @@ function addLine(){
 	fishingLines.a.push(fishingLine);
 
 	return fishingLine;
+}
+
+function hook(_line,_fish){
+	if(_line.caught == null && _fish.caught == null){
+		_fish.caught=_line;
+		_line.caught=_fish;
+		_line.y-=10000;
+		kick(50);
+	}
+}
+
+function kick(_amt){
+	var a = Math.random()*Math.PI*2;
+	for(var i = 0; i < bgs.length; ++i){
+		bgs[i].x+=Math.cos(a)*_amt;
+		bgs[i].y+=Math.sin(a)*_amt;
+	}
 }
