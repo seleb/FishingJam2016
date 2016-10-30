@@ -87,11 +87,6 @@ function init(){
 	addFish(2);
 	addFish(3);
 
-	fishies.a[0].x=size.x/3;
-	fishies.a[1].x=size.x/3*2;
-	fishies.a[0].y=size.y/2;
-	fishies.a[1].y=size.y/2;
-
 
 	fishingLines={
 		a:[],
@@ -523,12 +518,31 @@ function addFish(_id){
 	 	bubbleTimer:0,
 	 	caught:null
 	};
+	switch(_id){
+		case 0:
+			fish.x=size.x/4;
+			fish.y=size.y/4;
+			break;
+		case 1:
+			fish.x=size.x/4*3;
+			fish.y=size.y/4;
+			break;
+		case 2:
+			fish.x=size.x/4;
+			fish.y=size.y/4*3;
+			break;
+		case 3:
+			fish.x=size.x/4*3;
+			fish.y=size.y/4*3;
+			break;
+	}
+
 	fish.tex=PIXI.loader.resources["fish_"+(_id+1).toString(10)].texture;
 	fish.points=[];
 	fish.speed={x:0,y:0};
 	
 	for(var i = 0; i < fishies.segmentCount; i++){
-	    fish.points.push(new PIXI.Point(i * fishies.segmentLength, 0));
+	    fish.points.push(new PIXI.Point(fish.x+i * fishies.segmentLength, fish.y));
 	}
 	fish.strip = new PIXI.mesh.Rope(fish.tex, fish.points);
 
