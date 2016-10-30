@@ -62,12 +62,48 @@ $(document).ready(function(){
 	$("#display").prepend(renderer.view);
 
 
-	/*sounds["audio"]=new Howl({
-		urls:["assets/audio/audio.ogg"],
+	sounds["btn"]=new Howl({
+		urls:["assets/audio/btn.wav"],
 		autoplay:false,
 		loop:false,
 		volume:1
-	});*/
+	});
+	sounds["bump"]=new Howl({
+		urls:["assets/audio/bump.wav"],
+		autoplay:false,
+		loop:false,
+		volume:1
+	});
+	sounds["catch"]=new Howl({
+		urls:["assets/audio/catch.wav"],
+		autoplay:false,
+		loop:false,
+		volume:1
+	});
+	sounds["drop"]=new Howl({
+		urls:["assets/audio/drop.wav"],
+		autoplay:false,
+		loop:false,
+		volume:1
+	});
+	sounds["win"]=new Howl({
+		urls:["assets/audio/win.wav"],
+		autoplay:false,
+		loop:false,
+		volume:1
+	});
+	sounds["grab"]=new Howl({
+		urls:["assets/audio/grab.wav"],
+		autoplay:false,
+		loop:false,
+		volume:1
+	});
+	sounds["release"]=new Howl({
+		urls:["assets/audio/release.wav"],
+		autoplay:false,
+		loop:false,
+		volume:1
+	});
 
 	PIXI.loader
 		.add("hook","assets/img/hook.png")

@@ -249,10 +249,12 @@ function updateMenu(){
 				addFish(i);
 				menu_joins[i].texture=PIXI.loader.resources.ready.texture;
 				menu_joins[i].y-=20;
+				sounds["btn"].play();
 			}else if(!players_ready[i]){
 				players_ready[i]=true;
 				menu_joins[i].texture=PIXI.loader.resources.waiting.texture;
 				menu_joins[i].y-=20;
+				sounds["btn"].play();
 			}else{
 				// idk you're just pressing buttons now
 			}
@@ -291,6 +293,7 @@ function updateGame(){
 
 	if(winStartTime > 0 && curTime - winStartTime > 2000){
 		if(winner==null){
+			sounds["win"].play();
 			if(hooked == fishies.a.length){
 				winner="tie";
 				world.menu.addChild(menu_tie);
@@ -317,6 +320,7 @@ function updateGame(){
 
 			if(reset){
 				showMenu();
+				sounds["btn"].play();
 			}
 		}
 	}
@@ -483,6 +487,7 @@ function updateAlways(){
 
 				addPop((fish1.x+fish2.x)/2, (fish1.y+fish2.y)/2, fishies.innerCollision);
 				kick(10);
+				sounds["bump"].play();
 			}
 	    }
     }
@@ -583,9 +588,13 @@ function updateAlways(){
 			    		line:l,
 			    		segment:closest
 			    	};
+			    	sounds["grab"].play();
 			    	addPop(fishingLine.points[closest].x,fishingLine.points[closest].y,fishies.outerCollision);
 			    }if(fish.input.stoppedGrabbing){
-			    	fish.grabbed=null;
+			    	if(fish.grabbed!=null){
+			    		sounds["release"].play();
+			    		fish.grabbed=null;
+			    	}
 			    }
 
 			    // fish drag line
@@ -799,6 +808,7 @@ function addPop(_x,_y,_r){
 }
 
 function addLine(){
+	sounds["drop"].play();
 	var fishingLine={
 		points:[],
 		x:size.x/8*7*Math.random()+size.x/16,
@@ -847,6 +857,7 @@ function hook(_line,_fish){
 		kick(50);
 		addLine(); // add another line to compensate for this one going away
 		hooked += 1;
+		sounds["catch"].play();
 	}
 }
 
