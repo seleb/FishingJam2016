@@ -27,13 +27,6 @@ function init(){
 	world = new PIXI.Container(); // container for all the in-game stuff (i.e. not the menu)
 
 
-	// setup screen filter
-	screen_filter = new CustomFilter(PIXI.loader.resources.screen_shader.data);
-	screen_filter.padding=0;
-
-	//renderSprite.filters = [screen_filter];
-
-
 	// screen background
 	bgs=[];
 	for(var i = 1; i <= 3; ++i){
@@ -239,9 +232,6 @@ function update(){
 
 	updateAlways();
 	
-
-	screen_filter.uniforms.time = curTime/1000;
-
 	// update input managers
 	keys.update();
 	gamepads.update();
@@ -671,12 +661,7 @@ function updateAlways(){
 }
 
 function render(){
-	try{
-		renderer.render(scene,renderTexture);
-		renderer.render(renderSprite,null,true,false);
-	}catch(e){
-		renderer.render(scene,null,true,false);
-	}
+	renderer.render(scene,null,true,false);
 }
 
 

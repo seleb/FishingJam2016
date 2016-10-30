@@ -69,22 +69,7 @@ $(document).ready(function(){
 		volume:1
 	});*/
 
-
-	// create a new render texture..
-	renderTexture = PIXI.RenderTexture.create(size.x,size.y,PIXI.SCALE_MODES.NEAREST,1);
-	 
-	// create a sprite that uses the new render texture...
-	// and add it to the stage
-	renderSprite = new PIXI.Sprite(renderTexture, new PIXI.Rectangle(0,0,size.x,size.y));
-	game.addChild(renderSprite);
-	
-	fontStyle1={fontFamily: "font", fontSize: 32, align: "center", fill:0xFFFFFF};
-
-	CustomFilter.prototype = Object.create(PIXI.Filter.prototype);
-	CustomFilter.prototype.constructor = CustomFilter;
-
 	PIXI.loader
-		.add("screen_shader","assets/screen_shader.frag")
 		.add("hook","assets/img/hook.png")
 		.add("line","assets/img/line.png")
 		.add("bubble","assets/img/bubble.png")
@@ -110,16 +95,6 @@ $(document).ready(function(){
 		.on("progress", loadProgressHandler)
 		.load(init);
 });
-
-
-function CustomFilter(fragmentSource){
-	PIXI.Filter.call(this,
-		// vertex shader
-		null,
-		// fragment shader
-		fragmentSource
-	);
-}
 
 
 function loadProgressHandler(loader, resource){
