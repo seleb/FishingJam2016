@@ -635,6 +635,7 @@ function hook(_line,_fish){
 		_line.caught=_fish;
 		_line.y-=10000;
 		kick(50);
+		addLine(); // add another line to compensate for this one going away
 	}
 }
 
