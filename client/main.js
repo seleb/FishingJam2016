@@ -82,10 +82,10 @@ function init(){
 	fishies.innerCollision2 = fishies.innerCollision*fishies.innerCollision;
 	fishies.outerCollision2 = fishies.outerCollision*fishies.outerCollision;
 	
-	addFish();
-	addFish();
-	addFish();
-	addFish();
+	addFish(0);
+	addFish(1);
+	addFish(2);
+	addFish(3);
 
 	fishies.a[0].x=size[0]/3;
 	fishies.a[1].x=size[0]/3*2;
@@ -142,17 +142,18 @@ function update(){
 			avg.x+=fish.x;
 			avg.y+=fish.y;
 
-			fish.input={
-				dx:gamepads.getAxis(f*2),
-				dy:gamepads.getAxis(f*2+1)
-			};
+			fish.input=getInput(fish.id);
 
 			fish.speed.x+=fish.input.dx*fishies.speedMult;
 			fish.speed.y+=fish.input.dy*fishies.speedMult;
 
+			// damping
 			fish.speed.x*=0.9;
 			fish.speed.y*=0.9;
 
+
+			// keep fish within bounds
+			// (if past boundaries, push with force proportional to distance)
 			if(fish.x < 50){
 				fish.speed.x+=(50-fish.x)/10;
 			}else if(fish.x > size[0]-50){
@@ -375,18 +376,18 @@ function update(){
 
 		    // fish pickup line
 		    if(fishingLine.caught==null && fish.caught==null){
-			    if(gamepads.isJustDown(gamepads.A+f) && closest >= 0){
+			    if(fish.input.startedGrabbing && closest >= 0){
 			    	fish.grabbed={
 			    		line:l,
 			    		segment:closest
 			    	};
 			    	addPop(fishingLine.points[closest].x,fishingLine.points[closest].y,fishies.outerCollision);
-			    }if(gamepads.isJustUp(gamepads.A+f)){
+			    }if(fish.input.stoppedGrabbing){
 			    	fish.grabbed=null;
 			    }
 
 			    // fish drag line
-			    if(gamepads.isDown(gamepads.A+f)){
+			    if(fish.input.grabbing){
 			    	if(fish.grabbed!=null && fish.grabbed.line==l){
 			    		fishingLine.points[fish.grabbed.segment].x=fish.x - Math.cos(fish.a)*fishies.outerCollision;
 			    		fishingLine.points[fish.grabbed.segment].y=fish.y - Math.sin(fish.a)*fishies.outerCollision;
@@ -476,15 +477,16 @@ function render(){
 
 
 
-function addFish(){
+function addFish(_id){
 	var fish={
+		id:_id,
 		x:0,
 	 	y:0,
 	 	a:0,
 	 	bubbleTimer:0,
 	 	caught:null
 	};
-	fish.tex=PIXI.loader.resources["fish_"+(fishies.a.length+1).toString(10)].texture;
+	fish.tex=PIXI.loader.resources["fish_"+(_id+1).toString(10)].texture;
 	fish.points=[];
 	fish.speed={x:0,y:0};
 	
@@ -501,6 +503,61 @@ function addFish(){
 	world.fishies.addChild(fish.strip);
 
 	fishies.a.push(fish);
+}
+
+function getInput(_id){
+	var input={
+		dx:gamepads.getAxis(_id*2),
+		dy:gamepads.getAxis(_id*2+1),
+		grabbing:gamepads.isDown(gamepads.A+_id),
+		startedGrabbing:gamepads.isJustDown(gamepads.A+_id),
+		stoppedGrabbing:gamepads.isJustUp(gamepads.A+_id)
+	};
+
+	switch(_id){
+		case 0:
+			if(keys.isDown(keys.W)){
+				input.dy-=1;	
+			}if(keys.isDown(keys.A)){
+				input.dx-=1;	
+			}if(keys.isDown(keys.S)){
+				input.dy+=1;	
+			}if(keys.isDown(keys.D)){
+				input.dx+=1;	
+			}
+			input.grabbing|=keys.isDown(keys.E);
+			input.startedGrabbing|=keys.isJustDown(keys.E);
+			input.stoppedGrabbing|=keys.isJustUp(keys.E);
+			break;
+		case 1:
+			if(keys.isDown(keys.I)){
+				input.dy-=1;	
+			}if(keys.isDown(keys.J)){
+				input.dx-=1;	
+			}if(keys.isDown(keys.K)){
+				input.dy+=1;	
+			}if(keys.isDown(keys.L)){
+				input.dx+=1;	
+			}
+			input.grabbing|=keys.isDown(keys.O);
+			input.startedGrabbing|=keys.isJustDown(keys.O);
+			input.stoppedGrabbing|=keys.isJustUp(keys.O);
+			break;
+		default:
+			break;
+	}
+
+
+	// make sure using keyboard and gamepad doesn't double speed
+	input.dx=clamp(-1,input.dx,1);
+	input.dy=clamp(-1,input.dy,1);
+
+	// grabbing state sanity check (might be conflicted from keyboard and gamepad)
+	if(input.stoppedGrabbing){
+		input.grabbing=input.startedGrabbing=false;
+	}
+
+	return input;
 }
 
 function addBubble(_x,_y,_r,_life){
