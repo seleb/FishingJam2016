@@ -41,8 +41,8 @@ function init(){
 		bg.scale.x=bg.scale.y=2;
 		bg.anchor.x=0.5;
 		bg.anchor.y=0.5;
-		bg.x=size[0]/2;
-		bg.y=size[1]/2;
+		bg.x=size.x/2;
+		bg.y=size.y/2;
 		world.addChild(bg);
 
 		bgs.push(bg);
@@ -87,10 +87,10 @@ function init(){
 	addFish(2);
 	addFish(3);
 
-	fishies.a[0].x=size[0]/3;
-	fishies.a[1].x=size[0]/3*2;
-	fishies.a[0].y=size[1]/2;
-	fishies.a[1].y=size[1]/2;
+	fishies.a[0].x=size.x/3;
+	fishies.a[1].x=size.x/3*2;
+	fishies.a[0].y=size.y/2;
+	fishies.a[1].y=size.y/2;
 
 
 	fishingLines={
@@ -166,8 +166,8 @@ function update(){
 			world.addChild(t);
 			t.anchor.x=0.5;
 			t.anchor.y=0.5;
-			t.x=size[0]/2;
-			t.y=size[1]/2;
+			t.x=size.x/2;
+			t.y=size.y/2;
 		}
 	}
 
@@ -193,21 +193,21 @@ function update(){
 			// (if past boundaries, push with force proportional to distance)
 			if(fish.x < 50){
 				fish.speed.x+=(50-fish.x)/10;
-			}else if(fish.x > size[0]-50){
-				fish.speed.x-=(50-(size[0]-fish.x))/10;
+			}else if(fish.x > size.x-50){
+				fish.speed.x-=(50-(size.x-fish.x))/10;
 			}
 
 			if(fish.y < 50){
 				fish.speed.y+=(50-fish.y)/10;
-			}else if(fish.y > size[1]-50){
-				fish.speed.y-=(50-(size[1]-fish.y))/10;
+			}else if(fish.y > size.y-50){
+				fish.speed.y-=(50-(size.y-fish.y))/10;
 			}
 
 
 
 	    }else{
-			avg.x+=size[0]/2;
-			avg.y+=size[1]/2;
+			avg.x+=size.x/2;
+			avg.y+=size.y/2;
 
 	    	var p=fish.caught.contact.toGlobal(PIXI.zero);
 	    	fish.speed.x=p.x-fish.x;
@@ -247,13 +247,13 @@ function update(){
     avg.x/=fishies.a.length;
 	avg.y/=fishies.a.length;
 
-	avg.x=clamp(size[0]/4,avg.x,size[0]/4*3);
-	avg.y=clamp(size[1]/4,avg.y,size[1]/4*3);
+	avg.x=clamp(size.x/4,avg.x,size.x/4*3);
+	avg.y=clamp(size.y/4,avg.y,size.y/4*3);
 
     // background update
     for(var i = 3; i > 0; --i){
-	    avg.x=lerp(avg.x,size[0]/2,0.5);
-	    avg.y=lerp(avg.y,size[1]/2,0.5);
+	    avg.x=lerp(avg.x,size.x/2,0.5);
+	    avg.y=lerp(avg.y,size.y/2,0.5);
 
 	    var bg=bgs[i-1];
 	    bg.x=lerp(bg.x,avg.x,0.04);
@@ -628,7 +628,7 @@ function addPop(_x,_y,_r){
 function addLine(){
 	var fishingLine={
 		points:[],
-		x:size[0]/8*7*Math.random()+size[0]/16,
+		x:size.x/8*7*Math.random()+size.x/16,
 		y:-500-Math.random()*300,
 		ty:-Math.random()*500,
 		caught:null

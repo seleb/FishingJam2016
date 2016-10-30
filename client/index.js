@@ -17,7 +17,10 @@ var mouse={
 	x:0,
 	y:0
 };
-var size=[1024,768];
+var size={
+	x:1024,
+	y:768
+};
 
 var sounds=[];
 
@@ -41,7 +44,7 @@ $(document).ready(function(){
 
 	// create renderer
 	renderer = PIXI.autoDetectRenderer(
-		size[0],size[1],
+		size.x,size.y,
 		{
 			antiAlias:true,
 			transparent:false,
@@ -68,11 +71,11 @@ $(document).ready(function(){
 
 
 	// create a new render texture..
-	renderTexture = PIXI.RenderTexture.create(size[0],size[1],PIXI.SCALE_MODES.NEAREST,1);
+	renderTexture = PIXI.RenderTexture.create(size.x,size.y,PIXI.SCALE_MODES.NEAREST,1);
 	 
 	// create a sprite that uses the new render texture...
 	// and add it to the stage
-	renderSprite = new PIXI.Sprite(renderTexture, new PIXI.Rectangle(0,0,size[0],size[1]));
+	renderSprite = new PIXI.Sprite(renderTexture, new PIXI.Rectangle(0,0,size.x,size.y));
 	game.addChild(renderSprite);
 	
 	fontStyle1={fontFamily: "font", fontSize: 32, align: "center", fill:0xFFFFFF};
@@ -129,7 +132,7 @@ function onResize() {
 function _resize(){
 	var w=$("#display").innerWidth();
 	var h=$("#display").innerHeight();
-	var ratio=size[0]/size[1];
+	var ratio=size.x/size.y;
 
 	
 	if(w/h < ratio){
@@ -142,23 +145,23 @@ function _resize(){
 	var aw,ah;
 
 	if(scaleMode==0){
-		aw=size[0];
-		ah=size[1];
+		aw=size.x;
+		ah=size.y;
 
 
 		do{
-			aw+=size[0];
-			ah+=size[1];
+			aw+=size.x;
+			ah+=size.y;
 		}while(aw <= w || ah <= h);
 
-		aw-=size[0];
-		ah-=size[1];
+		aw-=size.x;
+		ah-=size.y;
 	}else if(scaleMode==1){
 		aw=w;
 		ah=h;
 	}else{
-		aw=size[0];
-		ah=size[1];
+		aw=size.x;
+		ah=size.y;
 	}
 
 	renderer.view.style.width=aw+"px";
