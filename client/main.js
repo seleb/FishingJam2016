@@ -492,7 +492,7 @@ function updateAlways(){
 				fish2.speed.y+=Math.sin(angle)*15;
 
 				addPop((fish1.x+fish2.x)/2, (fish1.y+fish2.y)/2, fishies.innerCollision);
-				kick(20);
+				kick(10);
 			}
 	    }
     }
