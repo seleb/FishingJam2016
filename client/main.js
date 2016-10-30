@@ -95,14 +95,12 @@ function init(){
 
 	fishingLines={
 		a:[],
-		segmentCount:20,
-		segmentLength:15,
-		collision:15
+		segmentCount:24,
+		segmentLength:16,
+		collision:15,
+		addTimer:0
 	};
 	fishingLines.collision2=fishingLines.collision*fishingLines.collision;
-
-	addLine();
-	addLine();
 
 
 	// screen border
@@ -129,6 +127,12 @@ function update(){
 		x:0,
 		y:0
 	};
+
+	--fishingLines.addTimer;
+	if(fishingLines.addTimer<=0 && fishingLines.a.length < 128){
+		addLine();
+		fishingLines.addTimer=(Math.random()*1000+500)/fishingLines.a.length;
+	}
 
 	// fish update
 	for(var f = 0; f < fishies.a.length; ++f){
@@ -291,6 +295,12 @@ function update(){
 		    	vx:fishingLine.points[i].vx,
 		    	vy:fishingLine.points[i].vy
 		    });
+		}
+
+		if(fishingLine.caught==null){
+			if(Math.abs(fishingLine.y-fishingLine.ty) > 5){
+				fishingLine.y+=Math.sign(fishingLine.ty-fishingLine.y)*5;
+			}
 		}
 
 	    fishingLine.points[0].x=fishingLine.x;
@@ -522,12 +532,11 @@ function addPop(_x,_y,_r){
 }
 
 function addLine(){
-	var x=size[0]*Math.random();
-
 	var fishingLine={
 		points:[],
-		x:x,
-		y:0,
+		x:size[0]/8*7*Math.random()+size[0]/16,
+		y:-500-Math.random()*300,
+		ty:-Math.random()*500,
 		caught:null
 	};
 
@@ -549,8 +558,8 @@ function addLine(){
 	
 	for (var i = 0; i < fishingLines.segmentCount; i++){
 	    fishingLine.points.push(new PIXI.Point(
-	    	x,
-	    	i*fishingLines.segmentLength));
+	    	fishingLine.x,
+	    	fishingLine.y+i*fishingLines.segmentLength));
 		fishingLine.points[i].vx=0;
 		fishingLine.points[i].vy=0;
 	}
