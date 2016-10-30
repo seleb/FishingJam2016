@@ -109,7 +109,7 @@ function update(){
 	// game logic goes here //
 	//////////////////////////
 	
-	
+	// fish update
 	for(var f = 0; f < fishies.a.length; ++f){
 		var fish=fishies.a[f];
 
@@ -130,8 +130,8 @@ function update(){
 	    fish.x+=fish.speed.x;
 	    fish.y+=fish.speed.y;
 
-	    fish.points[fishies.segmentCount-1].x=lerp(fish.points[fishies.segmentCount-1].x, fish.x-fishies.length/2*Math.cos(fish.a), 0.9);
-	    fish.points[fishies.segmentCount-1].y=lerp(fish.points[fishies.segmentCount-1].y, fish.y-fishies.length/2*Math.sin(fish.a), 0.9);
+	    fish.points[fishies.segmentCount-1].x=lerp(fish.points[fishies.segmentCount-1].x, fish.x-fishies.length/3*Math.cos(fish.a), 0.9);
+	    fish.points[fishies.segmentCount-1].y=lerp(fish.points[fishies.segmentCount-1].y, fish.y-fishies.length/3*Math.sin(fish.a), 0.9);
 
 
 	    for (var i = fishies.segmentCount-2; i >= 0; --i) {
@@ -269,7 +269,7 @@ function update(){
 		    			// check if segment is taken
 		    			var taken=false;
 	    				for(var j = 0; j < fishies.a.length; ++j){
-	    					if(i==fishies.a[j].grabbed){
+	    					if(fishies.a[j].grabbed!=null && l==fishies.a[j].grabbed.line && i==fishies.a[j].grabbed.segment){
 	    						taken=true;
 	    						break;
 							}
@@ -294,19 +294,22 @@ function update(){
 		    }
 
 		    // fish pickup line
-		    if(gamepads.isJustDown(gamepads.A+f)){
-		    	fish.grabbed=closest;
+		    if(gamepads.isJustDown(gamepads.A+f) && closest >= 0){
+		    	fish.grabbed={
+		    		line:l,
+		    		segment:closest
+		    	};
 		    }if(gamepads.isJustUp(gamepads.A+f)){
-		    	fish.grabbed=-1;
+		    	fish.grabbed=null;
 		    }
 
 		    // fish drag line
 		    if(gamepads.isDown(gamepads.A+f)){
-		    	if(fish.grabbed>=0){
-		    		fishingLine.points[fish.grabbed].x=fish.x - Math.cos(fish.a)*fishies.length/3;
-		    		fishingLine.points[fish.grabbed].y=fish.y - Math.sin(fish.a)*fishies.length/3;
-		    		fishingLine.points[fish.grabbed].vx=0;
-		    		fishingLine.points[fish.grabbed].vy=0;
+		    	if(fish.grabbed!=null && fish.grabbed.line==l){
+		    		fishingLine.points[fish.grabbed.segment].x=fish.x - Math.cos(fish.a)*fishies.length/3;
+		    		fishingLine.points[fish.grabbed.segment].y=fish.y - Math.sin(fish.a)*fishies.length/3;
+		    		fishingLine.points[fish.grabbed.segment].vx=0;
+		    		fishingLine.points[fish.grabbed.segment].vy=0;
 		    	}
 		    }
 		}
