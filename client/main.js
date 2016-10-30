@@ -109,6 +109,9 @@ function init(){
 	border.scale.y=2;
 	world.addChild(border);
 
+	winStartTime=-1;
+	hooked=0;
+	winner=null;
 
 	// start the main loop
 	window.onresize = onResize;
@@ -129,9 +132,43 @@ function update(){
 	};
 
 	--fishingLines.addTimer;
-	if(fishingLines.addTimer<=0 && fishingLines.a.length < 128){
+	if(winStartTime < 0 && fishingLines.addTimer<=0 && fishingLines.a.length < 128){
 		addLine();
 		fishingLines.addTimer=(Math.random()*1000+500)/fishingLines.a.length;
+	}
+
+	// check for winner
+	if(hooked >= fishies.a.length-1){
+		if(winStartTime < 0){
+			winStartTime = curTime;
+			for(var i = 0; i < fishingLines.a.length; ++i){
+				var fishingLine = fishingLines.a[i];
+				fishingLine.y-=1000;
+				fishingLine.ty = fishingLine.y;
+			}
+		}
+	}
+
+	if(winStartTime > 0 && curTime - winStartTime > 2000){
+		if(winner==null){
+			if(hooked == fishies.a.length){
+				winner="tie!";
+			}else{
+				for(var i = 0; i < fishies.a.length; ++i){
+					if(fishies.a[i].caught==null){
+						winner="player "+(i+1).toString(10)+" wins!";
+						break;
+					}
+				}
+			}
+
+			var t=new PIXI.Text(winner);
+			world.addChild(t);
+			t.anchor.x=0.5;
+			t.anchor.y=0.5;
+			t.x=size[0]/2;
+			t.y=size[1]/2;
+		}
 	}
 
 	// fish update
@@ -636,6 +673,7 @@ function hook(_line,_fish){
 		_line.y-=10000;
 		kick(50);
 		addLine(); // add another line to compensate for this one going away
+		hooked += 1;
 	}
 }
 
