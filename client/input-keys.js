@@ -14,6 +14,16 @@ var keys={
 	S: 83,
 	D: 68,
 
+	E: 69,
+	R: 82,
+
+	I: 73,
+	J: 74,
+	K: 75,
+	L: 76,
+
+	O: 79,
+
 	Z:90,
 	X:88,
 
@@ -70,6 +80,6 @@ var keys={
 		return this.justDown[_key]===true;
 	},
 	isJustUp:function(_key){
-		return this.up[_key]===true;
+		return this.justUp[_key]===true;
 	}
 };
