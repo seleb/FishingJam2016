@@ -243,9 +243,10 @@ function update(){
 			fishingLine.points[i-1].vy+=dy*d;
 	    }
 
-	    // gravity
+	    // gravity + sway
 	    for (var i = 0; i < fishingLines.segmentCount; ++i) {
 	    	fishingLine.points[i].vy+=0.5;
+	    	fishingLine.points[i].vx+=Math.sin(curTime/3333+curTime/1000+fishingLine.points[i].y/100+l)/20;
 	    }
 	    fishingLine.points[fishingLines.segmentCount-1].vy+=1;
 
