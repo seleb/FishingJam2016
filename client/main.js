@@ -728,11 +728,11 @@ function addFish(_id){
 
 function getInput(_id){
 	var input={
-		dx:gamepads.getAxis(gamepads.LSTICK_H,_id),
-		dy:gamepads.getAxis(gamepads.LSTICK_V,_id),
-		grabbing:gamepads.isDown(gamepads.A,_id),
-		startedGrabbing:gamepads.isJustDown(gamepads.A,_id),
-		stoppedGrabbing:gamepads.isJustUp(gamepads.A,_id)
+		dx: gamepads.getAxis(gamepads.LSTICK_H,_id),
+		dy: gamepads.getAxis(gamepads.LSTICK_V,_id),
+		grabbing: gamepads.isDown(gamepads.A,_id) || gamepads.isDown(gamepads.B,_id) || gamepads.isDown(gamepads.X,_id) || gamepads.isDown(gamepads.Y,_id),
+		startedGrabbing: gamepads.isJustDown(gamepads.A,_id) || gamepads.isJustDown(gamepads.B,_id) || gamepads.isJustDown(gamepads.X,_id) || gamepads.isJustDown(gamepads.Y,_id),
+		stoppedGrabbing: gamepads.isJustUp(gamepads.A,_id) || gamepads.isJustUp(gamepads.B,_id) || gamepads.isJustUp(gamepads.X,_id) || gamepads.isJustUp(gamepads.Y,_id)
 	};
 
 	if(gamepads.isDown(gamepads.DPAD_DOWN,_id)){
