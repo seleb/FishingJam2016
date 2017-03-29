@@ -735,6 +735,16 @@ function getInput(_id){
 		stoppedGrabbing:gamepads.isJustUp(gamepads.A,_id)
 	};
 
+	if(gamepads.isDown(gamepads.DPAD_DOWN,_id)){
+		input.dy += 1;
+	}if(gamepads.isDown(gamepads.DPAD_UP,_id)){
+		input.dy -= 1;
+	}if(gamepads.isDown(gamepads.DPAD_RIGHT,_id)){
+		input.dx += 1;
+	}if(gamepads.isDown(gamepads.DPAD_LEFT,_id)){
+		input.dx -= 1;
+	}
+
 	switch(_id){
 		case 0:
 			if(keys.isDown(keys.W)){
